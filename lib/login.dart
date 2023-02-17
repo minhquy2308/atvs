@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'package:atvs/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:atvs/dich_vu.dart';
 import 'section.dart';
 
+String phpurl = "https://quytm.000webhostapp.com/database_flutter/";
 late String errormsg;
 late bool error, showprogress, sending;
 bool sso = false, luuDangNhap = true, otpAuth = false, success = false;
@@ -25,23 +26,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // late Future<String> _email, _pw;
   Future<void> _loadLoginInfo() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userNameCtl.text = (prefs.getString('username') ?? "");
       passWordCtl.text = (prefs.getString('password') ?? "");
       luuDangNhap = prefs.getBool('save') ?? false;
-      sso = prefs.getBool('sso') ?? false;
-      otpAuth = prefs.getBool('otpAuth') ?? false;
+      // sso = prefs.getBool('sso') ?? false;
+      // otpAuth = prefs.getBool('otpAuth') ?? false;
       if (luuDangNhap) {
         setState(() {
           luuDangNhap = true;
-        });
-      }
-      if (sso) {
-        setState(() {
-          sso = true;
         });
       }
     });
@@ -54,8 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('username', userNameCtl.text);
       prefs.setString('password', passWordCtl.text);
       prefs.setBool('save', luuDangNhap);
-      prefs.setBool('sso', sso);
-      prefs.setBool('otpAuth', otpAuth);
+      // prefs.setBool('otpAuth', otpAuth);
     });
   }
 
@@ -74,61 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
     ]);
   }
 
-  startLogin() async {
-    String apiurl = "${phpurl}login.php"; //api url
-
-    var response = await http.post(Uri.parse(apiurl), body: {
-      'email': userNameCtl.text, //get the username text
-      'password': passWordCtl.text //get password text
-    });
-
-    if (response.statusCode == 200) {
-      var jsondata = json.decode(response.body);
-      if (jsondata["error"]) {
-        setState(() {
-          showprogress = false; //don't show progress indicator
-          error = true;
-          errormsg = jsondata["message"];
-          error ? errmsg(context, errormsg) : const Dialog();
-        });
-      } else {
-        if (jsondata["success"]) {
-          uid = jsondata["uid"];
-          fullname = jsondata["fullname"];
-          roleid = jsondata["role_id"];
-          if (jsondata["sdt"] != null) {
-            sdt = jsondata["sdt"];
-          } else {
-            sdt = "";
-          }
-          if (otpAuth) {
-            checksdt();
-            // sendOTP();
-          } else if (mounted) {
-            Navigator.pushNamed(context, '/home');
-          }
-          setState(() {
-            error = false;
-            showprogress = false;
-          });
-          //save the data returned from server
-          //and navigate to home page
-          //user shared preference to save data
-        } else {
-          showprogress = false; //don't show progress indicator
-          error = true;
-          errormsg = "Something went wrong.";
-        }
-      }
-    } else {
-      setState(() {
-        showprogress = false; //don't show progress indicator
-        error = true;
-        errormsg = "Error during connecting to server.";
-      });
-    }
-  }
-
   startLoginSSO() async {
     String apiurl = "https://login.vnptsonla.com/api/ldap_login"; //api url
     var username = "${userNameCtl.text}@vnpt.vn";
@@ -142,10 +81,10 @@ class _LoginScreenState extends State<LoginScreen> {
       // print(jsondata["login"]);
       if (jsondata["login"] == "success") {
         getUserInfo();
-        // setState(() {
-        //   error = false;
-        //   showprogress = false;
-        // });
+        setState(() {
+          error = false;
+          showprogress = false;
+        });
       } else {
         if (jsondata["login"] == "fail") {
           setState(() {
@@ -332,44 +271,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   getUserInfo() async {
-    String infourl = "${phpurl}getuser.php"; //api url
+    String infourl = "https://atvs.vnptsonla.com/api/login"; //api url
     var response = await http.post(Uri.parse(infourl), body: {
-      'email': userNameCtl.text, //get the username text
+      "username": userNameCtl.text, //get the username text
     });
-
     if (response.statusCode == 200) {
-      var jsondata = json.decode(response.body);
-      if (jsondata["error"]) {
+      var user = userFromJson(response.body);
+      if (user.msg == "success") {
+        uid = user.userInfo.userId.toString();
+        fullname = user.userInfo.fullname;
+        roleid = user.userInfo.roleId;
+        if (mounted) Navigator.pushNamed(context, '/home');
         setState(() {
-          showprogress = false; //don't show progress indicator
-          error = true;
-          errormsg = jsondata["message"];
-          error ? errmsg(context, errormsg) : const Dialog();
+          error = false;
+          showprogress = false;
         });
+        //save the data returned from server
+        //and navigate to home page
+        //user shared preference to save data
       } else {
-        if (jsondata["success"]) {
-          uid = jsondata["uid"];
-          fullname = jsondata["fullname"];
-          roleid = jsondata["role_id"];
-          sdt = jsondata["sdt"];
-          if (otpAuth) {
-            checksdt();
-            // sendOTP();
-          } else if (mounted) {
-            Navigator.pushNamed(context, '/home');
-          }
-          setState(() {
-            error = false;
-            showprogress = false;
-          });
-          //save the data returned from server
-          //and navigate to home page
-          //user shared preference to save data
-        } else {
-          showprogress = false; //don't show progress indicator
-          error = true;
-          errormsg = "Something went wrong.";
-        }
+        showprogress = false; //don't show progress indicator
+        error = true;
+        errormsg = "Something went wrong.";
       }
     } else {
       setState(() {
@@ -454,7 +377,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Khảo sát CNTT'),
+        title: const Text('Đánh giá An toàn vệ sinh lao động'),
       ),
       body: CustomScrollView(slivers: [
         SliverFillRemaining(
@@ -479,11 +402,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (luuDangNhap == true) {
                         _saveLoginInfo();
                       }
-                      if (sso == false) {
-                        startLogin();
-                      } else {
-                        startLoginSSO();
-                      }
+                      startLoginSSO();
+                      // Navigator.pushNamed(context, '/home');
                     },
                     child: showprogress
                         ? SizedBox(
@@ -504,7 +424,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              checkbox(),
+              // checkbox(),
               const LuuDangNhap(),
               const Spacer(),
               const CreditSection()
@@ -542,33 +462,6 @@ class _LuuDangNhapState extends State<LuuDangNhap> {
             },
           ))
         ]));
-  }
-}
-
-class SSOCheckBox extends StatefulWidget {
-  const SSOCheckBox({super.key});
-
-  @override
-  State<SSOCheckBox> createState() => _SSOCheckBoxState();
-}
-
-class _SSOCheckBoxState extends State<SSOCheckBox> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Center(
-          child: CheckboxListTile(
-        title: const Text('Đăng nhập SSO'),
-        checkColor: Colors.white,
-        // fillColor: MaterialStateProperty.resolveWith(getColor),
-        value: sso,
-        onChanged: (bool? value) {
-          setState(() {
-            sso = value!;
-          });
-        },
-      ))
-    ]);
   }
 }
 
@@ -622,7 +515,11 @@ errmsg(BuildContext context, String text) {
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Center(child: Text(text, textAlign: TextAlign.center,)),
+                child: Center(
+                    child: Text(
+                  text,
+                  textAlign: TextAlign.center,
+                )),
               ),
               const SizedBox(height: 10),
               Center(
@@ -677,12 +574,66 @@ checkbox() {
     children: const [
       Expanded(
         flex: 5,
-        child: SSOCheckBox(),
-      ),
-      Expanded(
-        flex: 5,
         child: OTPCheckBox(),
       ),
     ],
+  );
+}
+
+showNoti(BuildContext context, String noti) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        elevation: 16,
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            const SizedBox(height: 20),
+            const Center(child: Text('Thông báo')),
+            const SizedBox(height: 10),
+            Center(
+                child: Text(
+              noti,
+              textAlign: TextAlign.center,
+            )),
+            Center(
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("OK")))
+          ],
+        ),
+      );
+    },
+  );
+}
+
+showResult(BuildContext context, String route) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        elevation: 16,
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            const SizedBox(height: 20),
+            const Center(child: Text('Kết quả')),
+            const SizedBox(height: 10),
+            const Center(child: Text("Cập nhật thành công")),
+            Center(
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/$route');
+                    },
+                    child: const Text("OK")))
+          ],
+        ),
+      );
+    },
   );
 }

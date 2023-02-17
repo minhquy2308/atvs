@@ -1,13 +1,24 @@
+import 'package:atvs/baocaotonghop.dart';
+import 'package:atvs/section.dart';
+import 'package:atvs/tieu_chi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'chi_tiet_tieu_chi.dart';
+import 'danh_muc.dart';
 import 'login.dart';
+import 'noi_dung.dart';
 import 'screen.dart';
 
 final List<String> dv = [];
 
 Future main() async {
-
+  getBaocao();
+  getDanhMuc();
+  getChiTietTieuChi();
+  getNoiDung();
+  getTieuChi();
+  chonThang = 0;
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -22,20 +33,10 @@ Future main() async {
           routes: {
             '/': (context) => const LoginScreen(),
             '/home': (context) => const HomeScreen(),
-            '/BaoCaoTongHop': (context) => const BaoCaoTongHopScreen(),
-            '/BaoCaoChiTiet': (context) => const BaoCaoChiTietScreen(),
-            '/CuocGoiHoTro': (context) => const CuocGoiHoTroScreen(),
-            '/GoiKiem': (context) => const GoiKiemScreen(),
-            '/DanhSachCuocGoi': (context) => const DanhSachCuocGoiScreen(),
-            '/KetQua': (context) => const KetQuaScreen(),
-            '/DanhMucDV': (context) => const DanhMucDVScreen(),
-            '/ThemDV': (context) => const ThemDVScreen(),
-            '/NHCauHoi': (context) => const NHCauHoiScreen(),
-            '/Admin': (context) => const AdminScreen(),
-            '/ThemUser': (context) => const ThemUserScreen(),
+            '/review': (context) => const Review(),
+            '/reviewky': (context) => const ReviewKy(),
+            '/ChiTiet': (context) => const ChiTiet(),
           },
         ),
       ));
 }
-
-

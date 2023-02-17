@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:atvs/dich_vu.dart';
 import 'package:atvs/login.dart';
 import 'package:atvs/section.dart';
-import 'package:atvs/user.dart';
-import 'package:atvs/ketqua.dart';
-import 'ho_tro.dart';
 
 class NavigationDrawer extends StatelessWidget {
   const NavigationDrawer({super.key});
@@ -23,7 +19,9 @@ class NavigationDrawer extends StatelessWidget {
                 color: Colors.blue,
               ),
               child: Center(
-                child: rolename(roleid),
+                child:
+                // Text('')
+                rolename(roleid),
               ),
             ),
             ListTile(
@@ -34,94 +32,14 @@ class NavigationDrawer extends StatelessWidget {
               leading: const Icon(Icons.home),
               title: const Text('Trang chủ'),
             ),
-            // ExpansionTile(
-            //   leading: const Icon(Icons.analytics),
-            //   title: const Text("Báo cáo"),
-            //   children: <Widget>[
-            //     ListTile(
-            //       onTap: () {
-            //         Navigator.pushNamed(context, '/BaoCaoTongHop');
-            //       },
-            //       leading: const Icon(Icons.list),
-            //       title: const Text('Báo cáo tổng hợp'),
-            //     ),
-            //     ListTile(
-            //       onTap: () {
-            //         Navigator.pushNamed(context, '/BaoCaoChiTiet');
-            //       },
-            //       leading: const Icon(Icons.list),
-            //       title: const Text('Báo cáo chi tiết gọi kiểm'),
-            //     ),
-            //   ],
-            // ),
-            ExpansionTile(
-                leading: const Icon(Icons.phone),
-                title: const Text('Hỗ trợ khách hàng'),
-                children: <Widget>[
-                  ListTile(
-                    onTap: () {
-                      getDichVu();
-                      Future.delayed(const Duration(seconds: 1), () {
-                        Navigator.pushNamed(context, '/CuocGoiHoTro');
-                      });
-                    },
-                    leading: const Icon(Icons.call_made),
-                    title: const Text('Cuộc gọi hỗ trợ'),
-                  ),
-                  ListTile(
-                    onTap: () {
-                      getHotros();
-                      Future.delayed(const Duration(seconds: 1), () {
-                        Navigator.pushNamed(context, '/DanhSachCuocGoi');
-                      });
-                    },
-                    leading: const Icon(Icons.list),
-                    title: const Text('Danh sách cuộc gọi'),
-                  ),
-                ]),
             ListTile(
               onTap: () {
-                getKetqua();
-                Future.delayed(const Duration(seconds: 1), () {
-                  Navigator.pushNamed(context, '/KetQua');
-                });
+                // print(roleid);
+                Navigator.pushNamed(context, '/review');
               },
-              leading: const Icon(Icons.work),
-              title: const Text('Khảo sát dịch vụ'),
+              leading: const Icon(Icons.reviews_outlined),
+              title: const Text('Đánh giá ATVSLĐ'),
             ),
-            if (roleid == '1')
-              ExpansionTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text('Cấu hình'),
-                  children: <Widget>[
-                    ListTile(
-                      onTap: () {
-                        getDichVu();
-                        Future.delayed(const Duration(seconds: 1), () {
-                          Navigator.pushNamed(context, '/DanhMucDV');
-                        });
-                      },
-                      leading: const Icon(Icons.rounded_corner),
-                      title: const Text('Danh mục dịch vụ'),
-                    ),
-                    ListTile(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/NHCauHoi');
-                      },
-                      leading: const Icon(Icons.rounded_corner),
-                      title: const Text('Ngân hàng câu hỏi'),
-                    ),
-                    ListTile(
-                      onTap: () {
-                        getUser();
-                        Future.delayed(const Duration(seconds: 1), () {
-                          Navigator.pushNamed(context, '/Admin');
-                        });
-                      },
-                      leading: const Icon(Icons.rounded_corner),
-                      title: const Text('Quản trị tài khoản'),
-                    ),
-                  ]),
             ListTile(
               onTap: () {
                 fullname = "";
