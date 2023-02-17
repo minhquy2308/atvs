@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Đánh giá an toàn vệ sinh lao động'),
       ),
-      drawer: const NavigationDrawer(),
+      drawer: const NavigationDrawer1(),
       body: Column(children: [
         // TextButton(onPressed: (){
         //
@@ -258,7 +258,7 @@ class _ChiTietState extends State<ChiTiet> {
       appBar: AppBar(
         title: const Text('Điểm chi tiết đơn vị'),
       ),
-      drawer: const NavigationDrawer(),
+      drawer: const NavigationDrawer1(),
       body: Column(children: [
         diemChiTiet(stt),
         const SizedBox(height: 20),
@@ -400,7 +400,7 @@ class _ReviewKyState extends State<ReviewKy> {
       appBar: AppBar(
         title: const Text('Đánh giá an toàn vệ sinh lao động'),
       ),
-      drawer: const NavigationDrawer(),
+      drawer: const NavigationDrawer1(),
       body: Column(children: [
         diemChiTiet(stt),
         const SizedBox(height: 20),
@@ -473,7 +473,7 @@ class _ReviewState extends State<Review> {
       appBar: AppBar(
         title: const Text('Đánh giá an toàn vệ sinh lao động'),
       ),
-      drawer: const NavigationDrawer(),
+      drawer: const NavigationDrawer1(),
       body: Column(children: const [
         SizedBox(height: 20),
         Text('Chọn kỳ đánh giá TTVT Thành Phố Sơn La'),

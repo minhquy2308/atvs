@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:atvs/login.dart';
 import 'package:atvs/section.dart';
 
-class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer({super.key});
+class NavigationDrawer1 extends StatelessWidget {
+  const NavigationDrawer1({super.key});
 
   @override
   Widget build(BuildContext context) {
