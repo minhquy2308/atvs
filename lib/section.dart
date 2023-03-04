@@ -1,32 +1,22 @@
 import 'package:atvs/login.dart';
+import 'package:atvs/screen.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 
+import 'diem_chi_tiet.dart';
+
 final now = DateTime.now();
 final aMonthAgo = DateTime(now.year, now.month - 1, now.day);
-int chonThang = 0, lechNam = 0, lechThang = 0;
+int chonThang = 0, lechNam = 0, lechThang = 0, kyid = 0;
 
-List<String> listThang = [
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '6',
-  '7',
-  '8',
-  '9',
-  '10',
-  '11',
-  '12'
-];
-List<String> listNam = ['2022', '2023'];
+List<String> listThang = [];
+List<String> listNam = ['2023'];
 List<int> points = [];
 List<String> listDiem = ['1', '2'];
 List<String> listDiemDropdown = [];
-int namHienTai = aMonthAgo.year, thangHienTai = aMonthAgo.month;
+int namHienTai = now.year, thangHienTai = now.month;
 String dropdownNamValue = namHienTai.toString();
-String dropdownThangValue = thangHienTai.toString();
+String dropdownThangValue = '';
 bool check = true;
 
 class ThangNam extends StatefulWidget {
@@ -41,26 +31,31 @@ class _ThangNamState extends State<ThangNam> {
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
-        const SizedBox(width: 10),
-        const Text('Năm:'),
-        const SizedBox(width: 2),
-        const Expanded(child: DropdownNam()),
+        const SizedBox(width: 30),
+        // const Text('Năm:'),
+        // const SizedBox(width: 2),
+        // const Expanded(child: DropdownNam()),
         const Text('Tháng:'),
-        const SizedBox(width: 2),
+        const SizedBox(width: 20),
         const Expanded(child: DropdownThang()),
+        const SizedBox(width: 60),
         Expanded(
-            child: ElevatedButton(onPressed: () {
-              lechNam = int.parse(aMonthAgo.year.toString()) - int.parse(dropdownNamValue);
-              lechThang = int.parse(aMonthAgo.month.toString()) - int.parse(dropdownThangValue);
-              if(lechNam * 12 + lechThang >=0){
-                chonThang = lechNam * 12 + lechThang;
-                Navigator.pushNamed(context, '/home');
-              }else{
-                showNoti(context, "Tháng bạn chọn không hợp lệ,\nvui lòng thử lại!");
-              }
-
-            }, child: const Text('Chọn'))),
-        const SizedBox(width: 10),
+            child: ElevatedButton(
+                onPressed: () {
+                  lechNam = int.parse(aMonthAgo.year.toString()) -
+                      int.parse(dropdownNamValue);
+                  lechThang = int.parse(aMonthAgo.month.toString()) -
+                      int.parse(dropdownThangValue);
+                  if (lechNam * 12 + lechThang >= 0) {
+                    chonThang = lechNam * 12 + lechThang;
+                    Navigator.pushNamed(context, '/home');
+                  } else {
+                    showNoti(context,
+                        "Tháng bạn chọn không hợp lệ,\nvui lòng thử lại!");
+                  }
+                },
+                child: const Text('Chọn'))),
+        const SizedBox(width: 30),
       ],
     );
   }
@@ -220,9 +215,60 @@ class _KySectionState extends State<KySection> {
                     DataCell(
                       TextButton(
                         onPressed: () {
+                          kyid = index+1;
                           Navigator.pushNamed(context, '/reviewky');
                         },
                         child: Text('Đánh giá, chấm điểm tháng ${index + 1}'),
+                      ),
+                    )
+                  ]))),
+    ));
+  }
+}
+
+class RateSection extends StatefulWidget {
+  const RateSection({super.key});
+
+  @override
+  State<RateSection> createState() => _RateSectionState();
+}
+
+class _RateSectionState extends State<RateSection> {
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+        child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: DataTable2(
+          columnSpacing: 1,
+          horizontalMargin: 1,
+          minWidth: 300,
+          columns: [
+            DataColumn2(
+              label: Text('Danh sách kỳ năm $namHienTai'),
+            ),
+          ],
+          rows: List<DataRow>.generate(
+              thangHienTai,
+              (index) => DataRow(cells: [
+                    DataCell(
+                      TextButton(
+                        onPressed: () {
+                          kyid = index +1;
+                          getDiemChiTiet(
+                              iddonvi.toString(), (index + 1).toString());
+                          Future.delayed(const Duration(milliseconds: 1000),
+                              () {
+                            if (diemchitiets!.isEmpty) {
+                              showNoti(context,
+                                  "Đơn vị chưa đánh giá,\nchưa thể thẩm định");
+                            } else {
+                              stt = 0;
+                              Navigator.pushNamed(context, '/ThamDinhKy');
+                            }
+                          });
+                        },
+                        child: Text('Thẩm định tháng ${index + 1}'),
                       ),
                     )
                   ]))),

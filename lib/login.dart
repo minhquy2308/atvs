@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:atvs/baocaotonghop.dart';
 import 'package:atvs/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -10,7 +11,7 @@ String phpurl = "https://quytm.000webhostapp.com/database_flutter/";
 late String errormsg;
 late bool error, showprogress, sending;
 bool sso = false, luuDangNhap = true, otpAuth = false, success = false;
-late String username, password, uid, msg;
+late String username, password, uid, msg, donviuser, donviiduser;
 late String roleid;
 String fullname = "", sdt = "";
 String smsAPI =
@@ -78,7 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (response.statusCode == 200) {
       var jsondata = json.decode(response.body);
-      // print(jsondata["login"]);
       if (jsondata["login"] == "success") {
         getUserInfo();
         setState(() {
@@ -281,6 +281,14 @@ class _LoginScreenState extends State<LoginScreen> {
         uid = user.userInfo.userId.toString();
         fullname = user.userInfo.fullname;
         roleid = user.userInfo.roleId;
+        donviuser = user.userInfo.tenDonvi;
+        donviiduser = user.userInfo.donviId.toString();
+        dropdownThangValue = baocaos![0].month.toString();
+        if (listThang.isEmpty) {
+          for (int i = 0; i < baocaos!.length; i++) {
+            listThang.add(baocaos![i].month.toString());
+          }
+        }
         if (mounted) Navigator.pushNamed(context, '/home');
         setState(() {
           error = false;

@@ -1,7 +1,10 @@
+import 'package:atvs/phieu_da_tao.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:atvs/login.dart';
 import 'package:atvs/section.dart';
+import 'package:atvs/screen.dart';
+import 'donvi.dart';
 
 class NavigationDrawer1 extends StatelessWidget {
   const NavigationDrawer1({super.key});
@@ -34,11 +37,37 @@ class NavigationDrawer1 extends StatelessWidget {
             ),
             ListTile(
               onTap: () {
-                // print(roleid);
+                clearDiem();
+                stt=0;
                 Navigator.pushNamed(context, '/review');
               },
               leading: const Icon(Icons.reviews_outlined),
               title: const Text('Đánh giá ATVSLĐ'),
+            ),
+            ListTile(
+              onTap: () {
+                stt=0;
+                clearDiem();
+                getDonViCon();
+                Navigator.pushNamed(context, '/ThamDinh');
+              },
+              leading: const Icon(Icons.rate_review),
+              title: const Text('Thẩm định đánh giá'),
+            ),
+            ListTile(
+              onTap: () {
+                stt=0;
+                clearDiem();
+                getDonViCon();
+                getPhieuDaTao();
+                Future.delayed(
+                    const Duration(milliseconds: 500), () {
+                  Navigator.pushNamed(context, '/KiemTra');
+                });
+
+              },
+              leading: const Icon(Icons.check),
+              title: const Text('Kiểm tra ATVSLĐ'),
             ),
             ListTile(
               onTap: () {
@@ -72,17 +101,17 @@ rolename(String roleid) {
   String role = '';
   switch (roleid) {
     case '1':
-      role = "Quản trị viên";
+      role = "Nhân viên";
       break;
     case '2':
       role = "Nhân viên hỗ trợ";
       break;
     case '3':
-      role = "Nhân viên CSKH";
+      role = "Quản lý";
       break;
   }
   return Text(
-    'Xin chào, ${fullname.toString()}!\n$role',
+    'Xin chào, ${fullname.toString()}!',
     style: const TextStyle(
       color: Colors.white,
       fontSize: 18,
@@ -90,3 +119,4 @@ rolename(String roleid) {
     textAlign: TextAlign.center,
   );
 }
+

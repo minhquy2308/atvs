@@ -1,19 +1,35 @@
+import 'package:atvs/ket_qua.dart';
+import 'package:atvs/login.dart';
+import 'package:atvs/phieu.dart';
+import 'package:atvs/phieu_da_tao.dart';
+import 'package:atvs/remote_service.dart';
+import 'package:atvs/tham_dinh.dart';
 import 'package:atvs/tieu_chi.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'baocaotonghop.dart';
+import 'chi_tiet_phieu.dart';
 import 'diem_chi_tiet.dart';
+import 'donvi.dart';
 import 'noi_dung.dart';
 import 'section.dart';
 import 'navigation_drawer.dart';
-import 'user.dart';
-
-var stt = 0;
+String send = "";
+var stt = 0, iddonvi = 0, tendv = "";
+List<String> diem = [];
+List<int> soTrang = [0,1,2,3,4];
 List<TextEditingController> _controller = [
-  for (int i = 1; i < 50; i++)
-    TextEditingController()
+  for (int i = 0; i < 51; i++) TextEditingController()
 ];
+
+clearDiem() {
+  for (int i = 0; i < _controller.length; i++) {
+    _controller[i].clear();
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -53,20 +69,25 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             DataColumn2(
               label: Text(
-                'Tự\nđánh\ngiá',style: TextStyle(fontSize: 12),
+                'Tự\nđánh\ngiá',
+                style: TextStyle(fontSize: 12),
                 textAlign: TextAlign.center,
               ),
               fixedWidth: 35,
             ),
             DataColumn2(
               label: Text(
-                'Thẩm\nđịnh', style: TextStyle(fontSize: 12),
+                'Thẩm\nđịnh',
+                style: TextStyle(fontSize: 12),
                 textAlign: TextAlign.center,
               ),
               fixedWidth: 40,
             ),
             DataColumn2(
-              label: Text('Chi tiết', style: TextStyle(fontSize: 12),),
+              label: Text(
+                'Chi tiết',
+                style: TextStyle(fontSize: 12),
+              ),
               fixedWidth: 45,
             ),
           ],
@@ -90,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             .toString())))),
                     DataCell(TextButton(
                       onPressed: () {
-
                         getDiemChiTiet(
                             baocaos![thang].data[index].donviId.toString(),
                             baocaos![thang].data[index].idKy.toString());
@@ -98,7 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         Future.delayed(const Duration(milliseconds: 500), () {
                           Navigator.pushNamed(context, '/ChiTiet');
                         });
-
                       },
                       child: const Text(
                         "Xem",
@@ -130,12 +149,13 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer: const NavigationDrawer1(),
       body: Column(children: [
-        // TextButton(onPressed: (){
-        //
-        // }, child: const Text('Test')),
         const ThangNam(),
-        baoCao(chonThang),
-        chuaThucHien(chonThang),
+        baocaos!.isEmpty
+            ? const Text("Có lỗi xảy ra khi kết nối tới máy chủ")
+            : baoCao(chonThang),
+        baocaos!.isEmpty
+            ? const Text("Có lỗi xảy ra khi kết nối tới máy chủ")
+            : chuaThucHien(chonThang),
         const SizedBox(height: 20),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -178,8 +198,10 @@ class _ChiTietState extends State<ChiTiet> {
             height: 10, // Some height
           ),
           Text(
-              '${tieuchis![stt].sothutu.toString()}. ${tieuchis![stt].tenDm.toString()} ', textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              '${tieuchis![stt].sothutu.toString()}. ${tieuchis![stt].tenDm.toString()} ',
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           Expanded(
               child: Padding(
             padding: const EdgeInsets.all(16),
@@ -196,7 +218,8 @@ class _ChiTietState extends State<ChiTiet> {
                   ),
                   DataColumn2(
                     label: Text(
-                      'Đối tượng\nđánh giá', style: TextStyle(fontSize: 12),
+                      'Đối tượng\nđánh giá',
+                      style: TextStyle(fontSize: 12),
                       textAlign: TextAlign.justify,
                     ),
                     fixedWidth: 65,
@@ -210,19 +233,22 @@ class _ChiTietState extends State<ChiTiet> {
                   ),
                   DataColumn2(
                     label: Text(
-                      'Điểm\nchỉ\ntiêu', style: TextStyle(fontSize: 12),
+                      'Điểm\nchỉ\ntiêu',
+                      style: TextStyle(fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
                     fixedWidth: 40,
                   ),
                   DataColumn2(
-                    label: Text('Điểm\nđơn vị\nchấm', style: TextStyle(fontSize: 10),
+                    label: Text('Điểm\nđơn vị\nchấm',
+                        style: TextStyle(fontSize: 10),
                         textAlign: TextAlign.center),
                     fixedWidth: 40,
                   ),
                   DataColumn2(
-                    label:
-                        Text('Điểm\nthẩm\nđịnh', style: TextStyle(fontSize: 12),textAlign: TextAlign.center),
+                    label: Text('Điểm\nthẩm\nđịnh',
+                        style: TextStyle(fontSize: 12),
+                        textAlign: TextAlign.center),
                     fixedWidth: 40,
                   ),
                 ],
@@ -240,11 +266,16 @@ class _ChiTietState extends State<ChiTiet> {
                                   .diemdonvi
                                   .toString()),
                               textAlign: TextAlign.center)),
-                          DataCell(Text(
-                              (diemchitiets![index + stt * 10]
-                                  .diemtothamdinh
-                                  .toString()),
-                              textAlign: TextAlign.center)),
+                          DataCell(diemchitiets![index + stt * 10]
+                                      .diemtothamdinh
+                                      .toString() ==
+                                  "null"
+                              ? const Icon(Icons.not_interested)
+                              : Text(
+                                  diemchitiets![index + stt * 10]
+                                      .diemtothamdinh
+                                      .toString(),
+                                  textAlign: TextAlign.center))
                         ]))),
           ))
         ],
@@ -265,45 +296,169 @@ class _ChiTietState extends State<ChiTiet> {
         const SizedBox(
           height: 5,
         ),
-        Padding(padding: const EdgeInsets.all(5),
+        Padding(
+          padding: const EdgeInsets.all(5),
           child: Row(
             children: [
               const Text('Trang:'),
-              TextButton(
-                  onPressed: () {
-                    stt = 0;
-                    Navigator.pushNamed(context, '/ChiTiet');
-                  },
-                  child: stt == 0 ? const Text('1', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('1')),
-              TextButton(
-                  onPressed: () {
-                    stt = 1;
-                    Navigator.pushNamed(context, '/ChiTiet');
-                  },
-                  child: stt == 1 ? const Text('2', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('2')),
-              TextButton(
-                  onPressed: () {
-                    stt = 2;
-                    Navigator.pushNamed(context, '/ChiTiet');
-                  },
-                  child: stt == 2 ? const Text('3', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('3')),
-              TextButton(
-                  onPressed: () {
-                    stt = 3;
-                    Navigator.pushNamed(context, '/ChiTiet');
-                  },
-                  child: stt == 3 ? const Text('4', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('4')),
-              TextButton(
-                  onPressed: () {
-                    stt = 4;
-                    Navigator.pushNamed(context, '/ChiTiet');
-                  },
-                  child: stt == 4 ? const Text('5', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('5')),
+              for ( var i in soTrang ) trang(i, 'ChiTiet', context),
             ],
           ),
         )
       ]),
     );
+  }
+}
+
+class XemPhieu extends StatefulWidget {
+  const XemPhieu({super.key});
+
+  @override
+  State<XemPhieu> createState() => _XemPhieuState();
+}
+
+class _XemPhieuState extends State<XemPhieu> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  diemChiTiet(int stt) {
+    return Expanded(
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 10, // Some height
+          ),
+          Text(
+              '${tieuchis![stt].sothutu.toString()}. ${tieuchis![stt].tenDm.toString()} ',
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          Expanded(
+              child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: DataTable2(
+                columnSpacing: 10,
+                horizontalMargin: 0.3,
+                minWidth: 5,
+                dataRowHeight: 220,
+                border: TableBorder.all(),
+                columns: const [
+                  DataColumn2(
+                    label: Text('#'),
+                    fixedWidth: 30,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Đối tượng\nđánh giá',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.justify,
+                    ),
+                    fixedWidth: 65,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Nội dung tiêu chí',
+                      textAlign: TextAlign.center,
+                    ),
+                    size: ColumnSize.L,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Điểm\nchỉ\ntiêu',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                    fixedWidth: 40,
+                  ),
+                  DataColumn2(
+                    label: Text('Đánh\ngiá',
+                        style: TextStyle(fontSize: 12),
+                        textAlign: TextAlign.center),
+                    fixedWidth: 40,
+                  ),
+                ],
+                rows: List<DataRow>.generate(
+                    10,
+                    (index) => DataRow(cells: [
+                          DataCell(Text((index + 1 + stt * 10).toString())),
+                          DataCell(doiTuongDanhGia(index + stt * 10)),
+                          DataCell(Text(
+                              (noidungs![index + stt * 10].noidung.toString()),
+                              textAlign: TextAlign.justify)),
+                          const DataCell(Text('2')),
+                          DataCell(Text(
+                              (phieu!.kiemtra[index + stt * 10].diemDanhgia
+                                  .toString()),
+                              textAlign: TextAlign.center)),
+                        ]))),
+          ))
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(phieu!.title, style: const TextStyle(fontSize: 13),),
+      ),
+      drawer: const NavigationDrawer1(),
+      body: Column(children: [
+        diemChiTiet(stt),
+        const SizedBox(height: 20),
+        const SizedBox(
+          height: 5,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            children: [
+              const Text('Trang:'),
+              for ( var i in soTrang ) trang(i, 'XemPhieu', context),
+            ],
+          ),
+        )
+      ]),
+    );
+  }
+}
+
+guiDiem() {
+  diem = [];
+  for (int i = 0; i < 50; i++) {
+    diem.add(_controller[i].text);
+  }
+}
+
+bool err = false, empty = false;
+int loi = 0;
+
+checkEmpty() {
+  for (int i = 0; i < 50; i++) {
+    if (_controller[i].text.isEmpty) {
+      empty = true;
+      loi = i;
+      break;
+    }
+  }
+}
+
+validate() {
+  for (int i = 0; i < 50; i++) {
+    if (_controller[i].text == "1" || _controller[i].text == "2") {
+      err = false;
+    } else {
+      err = true;
+      loi = i;
+      break;
+    }
   }
 }
 
@@ -324,8 +479,6 @@ class _ReviewKyState extends State<ReviewKy> {
     ]);
   }
 
-
-
   diemChiTiet(int stt) {
     return Expanded(
       child: Column(
@@ -335,60 +488,66 @@ class _ReviewKyState extends State<ReviewKy> {
           ),
           Text(
               '${tieuchis![stt].sothutu.toString()}. ${tieuchis![stt].tenDm.toString()} ',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: DataTable2(
-                    columnSpacing: 10,
-                    horizontalMargin: 0.3,
-                    minWidth: 5,
-                    dataRowHeight: 200,
-                    border: TableBorder.all(),
-                    columns: const [
-                      DataColumn2(
-                        label: Text('#'),
-                        fixedWidth: 30,
-                      ),
-                      DataColumn2(
-                        label: Text(
-                          'Đối tượng\nđánh giá', style: TextStyle(fontSize: 12),
-                          textAlign: TextAlign.justify,
-                        ),
-                        fixedWidth: 65,
-                      ),
-                      DataColumn2(
-                        label: Text(
-                          'Nội dung tiêu chí',
-                          textAlign: TextAlign.center,
-                        ),
-                        size: ColumnSize.L,
-                      ),
-                      DataColumn2(
-                        label: Text(
-                          'Điểm\nchỉ\ntiêu', style: TextStyle(fontSize: 12),
-                          textAlign: TextAlign.center,
-                        ),
-                        fixedWidth: 40,
-                      ),
-                      DataColumn2(
-                        label: Text('Điểm\nđơn vị\nchấm', style: TextStyle(fontSize: 10),
-                            textAlign: TextAlign.center),
-                        fixedWidth: 40,
-                      ),
-                    ],
-                    rows: List<DataRow>.generate(
-                        10,
-                            (index) => DataRow(cells: [
+            padding: const EdgeInsets.all(16),
+            child: DataTable2(
+                columnSpacing: 10,
+                horizontalMargin: 0.3,
+                minWidth: 5,
+                dataRowHeight: 200,
+                border: TableBorder.all(),
+                columns: const [
+                  DataColumn2(
+                    label: Text('#'),
+                    fixedWidth: 30,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Đối tượng\nđánh giá',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.justify,
+                    ),
+                    fixedWidth: 65,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Nội dung tiêu chí',
+                      textAlign: TextAlign.center,
+                    ),
+                    size: ColumnSize.L,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Điểm\nchỉ\ntiêu',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                    fixedWidth: 40,
+                  ),
+                  DataColumn2(
+                    label: Text('Điểm\nđơn vị\nchấm',
+                        style: TextStyle(fontSize: 10),
+                        textAlign: TextAlign.center),
+                    fixedWidth: 40,
+                  ),
+                ],
+                rows: List<DataRow>.generate(
+                    10,
+                    (index) => DataRow(cells: [
                           DataCell(Text((index + 1 + stt * 10).toString())),
                           DataCell(doiTuongDanhGia(index + stt * 10)),
                           DataCell(Text(
                               (noidungs![index + stt * 10].noidung.toString()),
                               textAlign: TextAlign.justify)),
                           const DataCell(Text('2')),
-                          DataCell(TextField(controller: _controller[index],)),
+                          DataCell(TextField(
+                            controller: _controller[index + stt * 10],
+                          )),
                         ]))),
-              ))
+          ))
         ],
       ),
     );
@@ -407,48 +566,554 @@ class _ReviewKyState extends State<ReviewKy> {
         const SizedBox(
           height: 5,
         ),
-        Padding(padding: const EdgeInsets.all(10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1),
           child: Row(
             children: [
               const Text('Trang:'),
-              TextButton(
-                  onPressed: () {
-                    stt = 0;
-                    Navigator.pushNamed(context, '/reviewky');
-                  },
-                  child: stt == 0 ? const Text('1', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('1')),
-              TextButton(
-                  onPressed: () {
-                    stt = 1;
-                    Navigator.pushNamed(context, '/reviewky');
-                  },
-                  child: stt == 1 ? const Text('2', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('2')),
-              TextButton(
-                  onPressed: () {
-                    stt = 2;
-                    Navigator.pushNamed(context, '/reviewky');
-                  },
-                  child: stt == 2 ? const Text('3', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('3')),
-              TextButton(
-                  onPressed: () {
-                    stt = 3;
-                    Navigator.pushNamed(context, '/reviewky');
-                  },
-                  child: stt == 3 ? const Text('4', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('4')),
-              TextButton(
-                  onPressed: () {
-                    stt = 4;
-                    Navigator.pushNamed(context, '/reviewky');
-                  },
-                  child: stt == 4 ? const Text('5', style: TextStyle(decoration: TextDecoration.underline, color: Colors.red)) : const Text('5')),
+              for ( var i in soTrang ) trang(i, 'reviewky', context),
             ],
           ),
-        )
+        ),
+        ElevatedButton(
+            onPressed: () {
+              err = false;
+              empty = false;
+              checkEmpty();
+              validate();
+              if (empty == true) {
+                showNoti(context,
+                    "Chưa điền đù điểm,\nvui lòng kiểm tra lại!\n Lỗi ở ô $loi");
+              } else if (err == true) {
+                showNoti(context,
+                    "Điểm chỉ được nhập giá trị 1 hoặc 2,\nvui lòng kiểm tra lại!\n Lỗi ở ô $loi");
+              } else {
+                guiDiem();
+                createNoidung(diem);
+                send = ketquaToJson(Ketqua(
+                    noidung: cacnoidung,
+                    donviId: donviiduser,
+                    userId: uid,
+                    kyId: kyid.toString()));
+                RemoteServiceKetQua().guiKetQua();
+                if (errorPost) {
+                  errmsg(context, "Có lỗi xảy ra, vui lòng thử lại sau");
+                } else {
+                  showNoti(context, "Thành công");
+                }
+              }
+            },
+            child: const Text("Gửi"))
       ]),
     );
   }
 }
 
+class RateKy extends StatefulWidget {
+  const RateKy({super.key});
+
+  @override
+  State<RateKy> createState() => _RateKyState();
+}
+
+class _RateKyState extends State<RateKy> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  diemChiTiet(int stt) {
+    return Expanded(
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 10, // Some height
+          ),
+          Text(
+              '${tieuchis![stt].sothutu.toString()}. ${tieuchis![stt].tenDm.toString()} ',
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          Expanded(
+              child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: DataTable2(
+                columnSpacing: 10,
+                horizontalMargin: 0.3,
+                minWidth: 5,
+                dataRowHeight: 270,
+                border: TableBorder.all(),
+                columns: const [
+                  DataColumn2(
+                    label: Text('#'),
+                    fixedWidth: 30,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Đối tượng\nđánh giá',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.justify,
+                    ),
+                    fixedWidth: 85,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Nội dung tiêu chí',
+                      textAlign: TextAlign.center,
+                    ),
+                    size: ColumnSize.L,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Điểm\nchỉ\ntiêu',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                    fixedWidth: 40,
+                  ),
+                  DataColumn2(
+                    label: Text('Điểm\nđơn vị\nchấm',
+                        style: TextStyle(fontSize: 10),
+                        textAlign: TextAlign.center),
+                    fixedWidth: 40,
+                  ),
+                  DataColumn2(
+                    label: Text('Điểm\nthẩm\nđịnh',
+                        style: TextStyle(fontSize: 10),
+                        textAlign: TextAlign.center),
+                    fixedWidth: 40,
+                  ),
+                ],
+                rows: List<DataRow>.generate(
+                    10,
+                    (index) => DataRow(cells: [
+                          DataCell(Text((index + 1 + stt * 10).toString())),
+                          DataCell(doiTuongDanhGia(index + stt * 10)),
+                          DataCell(Text(
+                              (noidungs![index + stt * 10].noidung.toString()),
+                              textAlign: TextAlign.justify)),
+                          const DataCell(Text('2')),
+                          DataCell(Text(
+                              (diemchitiets![index + stt * 10]
+                                  .diemdonvi
+                                  .toString()),
+                              textAlign: TextAlign.center)),
+                          DataCell(TextField(
+                            textInputAction: TextInputAction.next,
+                            controller: _controller[index + stt * 10],
+                          )),
+                        ]))),
+          ))
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Đánh giá an toàn vệ sinh lao động'),
+      ),
+      drawer: const NavigationDrawer1(),
+      body: Column(children: [
+        diemChiTiet(stt),
+        const SizedBox(height: 20),
+        const SizedBox(
+          height: 5,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1),
+          child: Row(
+            children: [
+              const Text('Trang:'),
+              for ( var i in soTrang ) trang(i, 'ThamDinhKy', context),
+            ],
+          ),
+        ),
+        ElevatedButton(
+            onPressed: () {
+              err = false;
+              empty = false;
+              checkEmpty();
+              validate();
+              if (empty == true) {
+                showNoti(context,
+                    "Chưa điền đù điểm,\nvui lòng kiểm tra lại!\n Lỗi ở ô $loi");
+              } else if (err == true) {
+                showNoti(context,
+                    "Điểm chỉ được nhập giá trị 1 hoặc 2,\nvui lòng kiểm tra lại!\n Lỗi ở ô $loi");
+              } else {
+                guiDiem();
+                createNoidung(diem);
+                send = thamDinhToJson(ThamDinh(noidung: cacnoidung, userId: uid));
+                RemoteServiceThamDinh().taoPhieu(send);
+                if (errorPost) {
+                  errmsg(context, "Có lỗi xảy ra, vui lòng thử lại sau");
+                } else {
+                  showResult(context, "ThamDinh");
+                }
+              }
+            },
+            child: const Text("Gửi"))
+      ]),
+    );
+  }
+}
+List<TextButton> cactrang = [];
+trang(int index, String route, BuildContext context){
+    return TextButton(
+        onPressed: () {
+          stt = index;
+          Navigator.pushNamed(context, '/$route');
+        },
+        child: stt == index
+            ? Text((index+1).toString(),
+            style: const TextStyle(
+                decoration: TextDecoration.underline,
+                color: Colors.red))
+            : Text((index+1).toString()));
+}
+
+class KiemTraKy extends StatefulWidget {
+  const KiemTraKy({super.key});
+
+  @override
+  State<KiemTraKy> createState() => _KiemTraKyState();
+}
+
+class _KiemTraKyState extends State<KiemTraKy> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  diemChiTiet(int stt) {
+    return Expanded(
+      child: Column(
+        children: [
+          const SizedBox(
+            height: 10, // Some height
+          ),
+          Text(
+              '${tieuchis![stt].sothutu.toString()}. ${tieuchis![stt].tenDm.toString()} ',
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          Expanded(
+              child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: DataTable2(
+                columnSpacing: 10,
+                horizontalMargin: 0.3,
+                minWidth: 5,
+                dataRowHeight: 200,
+                border: TableBorder.all(),
+                columns: const [
+                  DataColumn2(
+                    label: Text('#'),
+                    fixedWidth: 30,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Đối tượng\nđánh giá',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.justify,
+                    ),
+                    fixedWidth: 65,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Nội dung tiêu chí',
+                      textAlign: TextAlign.center,
+                    ),
+                    size: ColumnSize.L,
+                  ),
+                  DataColumn2(
+                    label: Text(
+                      'Điểm\nchỉ\ntiêu',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                    fixedWidth: 40,
+                  ),
+                  DataColumn2(
+                    label: Text('Đánh\ngiá',
+                        style: TextStyle(fontSize: 10),
+                        textAlign: TextAlign.center),
+                    fixedWidth: 40,
+                  ),
+                ],
+                rows: List<DataRow>.generate(
+                    10,
+                    (index) => DataRow(cells: [
+                          DataCell(Text((index + 1 + stt * 10).toString())),
+                          DataCell(doiTuongDanhGia(index + stt * 10)),
+                          DataCell(Text(
+                              (noidungs![index + stt * 10].noidung.toString()),
+                              textAlign: TextAlign.justify)),
+                          const DataCell(Text('2')),
+                          DataCell(TextField(
+                            controller: _controller[index + stt * 10],
+                          )),
+                        ]))),
+          ))
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Đánh giá an toàn vệ sinh lao động'),
+      ),
+      drawer: const NavigationDrawer1(),
+      body: Column(children: [
+        diemChiTiet(stt),
+        const SizedBox(height: 20),
+        const SizedBox(
+          height: 5,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1),
+          child: Row(
+            children: [
+              const Text('Trang:'),
+              for ( var i in soTrang ) trang(i, 'KiemTraKy', context),
+            ],
+          ),
+        ),
+        ElevatedButton(
+            onPressed: () {
+              err = false;
+              empty = false;
+              checkEmpty();
+              validate();
+              if (empty == true) {
+                showNoti(context,
+                    "Chưa điền đù điểm,\nvui lòng kiểm tra lại!\n Lỗi ở ô $loi");
+              } else if (err == true) {
+                showNoti(context,
+                    "Điểm chỉ được nhập giá trị 1 hoặc 2,\nvui lòng kiểm tra lại!\n Lỗi ở ô $loi");
+              } else {
+                guiDiem();
+                createNoidungPhieu(diem);
+                send = phieuToJson(Phieu(
+                    title: "Kiểm tra ATVSLĐ tháng $thangHienTai - $tendv",
+                    noidung: cacnoidungphieu,
+                    donviId: iddonvi.toString(),
+                    userId: uid));
+                RemoteServiceTaoPhieu().taoPhieu(send);
+                if (errorPost) {
+                  errmsg(context, "Có lỗi xảy ra, vui lòng thử lại sau");
+                } else {
+                  showResult(context, "KiemTra");
+                }
+              }
+            },
+            child: const Text("Gửi"))
+      ]),
+    );
+  }
+}
+
+class ThamDinhScreen extends StatefulWidget {
+  const ThamDinhScreen({super.key});
+
+  @override
+  State<ThamDinhScreen> createState() => _ThamDinhScreenState();
+}
+
+class _ThamDinhScreenState extends State<ThamDinhScreen> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  donvi(String tendonvi, int id) {
+    return TextButton(
+        onPressed: () {
+          tendv = tendonvi;
+          iddonvi = id;
+          Navigator.pushNamed(context, '/ThamDinhChiTiet');
+        },
+        child: Text(tendonvi));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Thẩm định đánh giá'),
+      ),
+      drawer: const NavigationDrawer1(),
+      body: Column(children: [
+        const SizedBox(height: 20),
+        Expanded(
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DataTable2(
+                    columnSpacing: 1,
+                    horizontalMargin: 1,
+                    minWidth: 300,
+                    columns: const [
+                      DataColumn2(
+                        label: Text('Chọn đơn vị để chấm điểm thẩm định'),
+                      ),
+                    ],
+                    rows: List<DataRow>.generate(
+                        donvicon!.length,
+                        (index) => DataRow(cells: [
+                              DataCell(
+                                donvi(donvicon![index].tenDv,
+                                    donvicon![index].id),
+                              )
+                            ]))))),
+        const SizedBox(
+          height: 5,
+        ),
+      ]),
+    );
+  }
+}
+
+class KiemTra extends StatefulWidget {
+  const KiemTra({super.key});
+
+  @override
+  State<KiemTra> createState() => _KiemTraState();
+}
+
+class _KiemTraState extends State<KiemTra> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  donvi(String tendonvi, int id) {
+    return TextButton(
+        onPressed: () {
+          tendv = tendonvi;
+          iddonvi = id;
+          kyid = thangHienTai;
+          Navigator.pushNamed(context, '/KiemTraKy');
+        },
+        child: Text(tendonvi));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Kiểm tra ATVSLĐ'),
+      ),
+      drawer: const NavigationDrawer1(),
+      body: Column(children: [
+        const SizedBox(height: 20),
+        Expanded(
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DataTable2(
+                    columnSpacing: 1,
+                    horizontalMargin: 1,
+                    minWidth: 50,
+                    columns: const [
+                      DataColumn2(
+                        label: Text('Chọn đơn vị để tạo phiếu đánh giá'),
+                      ),
+                    ],
+                    rows: List<DataRow>.generate(
+                        donvicon!.length,
+                        (index) => DataRow(cells: [
+                              DataCell(
+                                donvi(donvicon![index].tenDv,
+                                    donvicon![index].id),
+                              )
+                            ]))))),
+        const Text('Danh sách phiếu đã gửi'),
+        Expanded(
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DataTable2(
+                    columnSpacing: 1,
+                    horizontalMargin: 1,
+                    // minWidth: 150,
+                    dataRowHeight: 70,
+                    columns: const [
+                      DataColumn2(
+                        label: Text('STT'),
+                        size: ColumnSize.S,
+                      ),
+                      DataColumn2(
+                        label: Text('Tên phiếu'),
+                      ),
+                      DataColumn2(
+                        label: Text(
+                          'Đánh giá cho',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      DataColumn2(
+                        label: Text('Ngày gửi', style: TextStyle(fontSize: 12)),
+                        size: ColumnSize.S,
+                      ),
+                      DataColumn2(
+                        label:
+                            Text('Người gửi', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                    rows: List<DataRow>.generate(
+                        phieus!.length,
+                        (index) => DataRow(cells: [
+                              DataCell(Text((index + 1).toString())),
+                              DataCell(TextButton(
+                                  onPressed: () {
+                                    idphieu = phieus![index].id.toString();
+                                    getPhieu();
+                                    stt=0;
+                                    Future.delayed(
+                                        const Duration(milliseconds: 500), () {
+                                      Navigator.pushNamed(context, '/XemPhieu');
+                                    });
+                                  },
+                                  child: Text(
+                                    phieus![index].title,
+                                    style: const TextStyle(fontSize: 9),
+                                  ))),
+                              DataCell(Text(phieus![index].donvi.tenDv)),
+                              DataCell(Text(
+                                  DateFormat('dd-MM-yy HH:mm').format(
+                                      phieus![index]
+                                          .createdAt
+                                          .add(const Duration(hours: 7))),
+                                  style: const TextStyle(fontSize: 12))),
+                              DataCell(Text(phieus![index].user.name,
+                                  style: const TextStyle(fontSize: 12))),
+                            ]))))),
+        const SizedBox(
+          height: 5,
+        ),
+      ]),
+    );
+  }
+}
 
 class Review extends StatefulWidget {
   const Review({super.key});
@@ -474,14 +1139,48 @@ class _ReviewState extends State<Review> {
         title: const Text('Đánh giá an toàn vệ sinh lao động'),
       ),
       drawer: const NavigationDrawer1(),
-      body: Column(children: const [
-        SizedBox(height: 20),
-        Text('Chọn kỳ đánh giá TTVT Thành Phố Sơn La'),
-        KySection(),
+      body: Column(children: [
+        const SizedBox(height: 20),
+        Text('Chọn kỳ đánh giá $donviuser'),
+        const KySection(),
       ]),
     );
   }
 }
+
+class Rate extends StatefulWidget {
+  const Rate({super.key});
+
+  @override
+  State<Rate> createState() => _RateState();
+}
+
+class _RateState extends State<Rate> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Thẩm định đánh giá'),
+      ),
+      drawer: const NavigationDrawer1(),
+      body: Column(children: [
+        const SizedBox(height: 20),
+        Text('Chọn kỳ đánh giá $tendv'),
+        const RateSection(),
+      ]),
+    );
+  }
+}
+
 doiTuongDanhGia(int index) {
   String dtdg = '';
   switch (index) {

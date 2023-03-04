@@ -1,18 +1,10 @@
-// To parse this JSON data, do
-//
-//     final hoTro = hoTroFromJson(jsonString);
+
 import 'dart:convert';
 
 import 'baocao.dart';
 import 'remote_service.dart';
-
-// List<BaoCao> baoCaoFromJson(String str) =>
-//     List<BaoCao>.from(json.decode(str).map((x) => BaoCao.fromJson(x)));
-
-// List<Data> dataFromJson(String str) =>
-    // List<Data>.from(json.decode(str).map((x) => BaoCao.fromJson(x)));
-List<Thang>? baocaos;
-List<Data>? datas;
+List<Thang>? baocaos=[];
+List<Data>? datas=[];
 
 class BaoCao {
   BaoCao({
