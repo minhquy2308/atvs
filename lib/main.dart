@@ -22,7 +22,6 @@ Future main() async {
   getTieuChi();
   getDonVi();
   getPhieuDaTao();
-  chonThang = 0;
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

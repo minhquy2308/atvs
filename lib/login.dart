@@ -81,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
       var jsondata = json.decode(response.body);
       if (jsondata["login"] == "success") {
         getUserInfo();
+        chonThang = 0;
         setState(() {
           error = false;
           showprogress = false;

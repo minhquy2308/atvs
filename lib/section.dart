@@ -46,13 +46,14 @@ class _ThangNamState extends State<ThangNam> {
                       int.parse(dropdownNamValue);
                   lechThang = int.parse(aMonthAgo.month.toString()) -
                       int.parse(dropdownThangValue);
-                  if (lechNam * 12 + lechThang >= 0) {
-                    chonThang = lechNam * 12 + lechThang;
+                  // if (lechNam * 12 + lechThang > 0) {
+                    chonThang = lechNam * 12 + lechThang +1;
+                    // print(chonThang);
                     Navigator.pushNamed(context, '/home');
-                  } else {
-                    showNoti(context,
-                        "Tháng bạn chọn không hợp lệ,\nvui lòng thử lại!");
-                  }
+                  // } else {
+                  //   showNoti(context,
+                  //       "Tháng bạn chọn không hợp lệ,\nvui lòng thử lại!");
+                  // }
                 },
                 child: const Text('Chọn'))),
         const SizedBox(width: 30),
